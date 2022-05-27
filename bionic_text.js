@@ -10,6 +10,7 @@ var buttonInTopBar = 'no';
 let tree = getTreeByPageTitle('roam/js/bionic text');
 if (tree.length==0) createSettingsPage();
 else getSettings(tree);
+console.log('Bionic text settings loaded.');
 
 document.addEventListener('keydown', keyboardToggle);
 if (buttonInTopBar=='yes') buttonToggle();
