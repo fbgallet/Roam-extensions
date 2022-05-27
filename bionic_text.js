@@ -1,3 +1,4 @@
+(()=>{
 //Default Settings
 //User settings: on [[roam/js/bionic text]] page
 var fixation = '50';
@@ -200,3 +201,4 @@ function getSettings(settingsArray) {
     }
   }
 }
+})();
