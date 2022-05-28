@@ -129,7 +129,8 @@ function BionicMode() {
       if (tab[k].includes('<')) continue;
       words = tab[k].split(' ');
       for (let i=0;i<words.length;i+=sacNum) {
-        words[i] = boldHalfWord(words[i]);
+        let w = words[i];
+        if (w.length != 0) words[i] = boldHalfWord(w);
       }
       tab[k]=words.join(' ');
     }
@@ -139,11 +140,9 @@ function BionicMode() {
   function boldHalfWord(word) {
     let midIndex=0;
     let len=word.length;
-    if (len != 0) {
-      if (len>3) midIndex = Math.ceil(len * fixNum / 100);
-      else midIndex = Math.floor(len * fixNum / 100);
-      word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
-    }
+    if (len>3) midIndex = Math.floor(len * fixNum / 100);
+    else midIndex = Math.ceil(len * fixNum / 100);
+    word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     return word;
   }
 }
