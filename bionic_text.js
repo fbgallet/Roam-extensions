@@ -1,16 +1,30 @@
+/*********************************************************** 
+   Roam Bionic text
+   	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
+
+    - Toggle it with Shift+Alt+B or 'B' button in the top bar (if enabled in user settings on [[roam/js/bionic text]]).
+    - You can set fixation (percentage of word in bold) and saccade (applies every x words) on [[roam/js/bionic text]]
+  
+Version: 0.21
+Published: May 28th, 2022
+By: Fabrice Gallet
+Twitter: @fbgallet
+
+Support my work on: https://www.buymeacoffee.com/fbgallet
+
+************************************************************/
 (()=>{
 //Default Settings
 //User settings: on [[roam/js/bionic text]] page
 var fixation = '50';
-var saccade = '2';
+var saccade = '1';
 var fixNum, sacNum;
 var startBionicMode = false;
-var buttonInTopBar = 'no';
+var buttonInTopBar = 'yes';
 
 let tree = getTreeByPageTitle('roam/js/bionic text');
 if (tree.length==0) createSettingsPage();
 else getSettings(tree);
-console.log('Bionic text settings loaded.');
 
 document.addEventListener('keydown', keyboardToggle);
 if (buttonInTopBar=='yes') buttonToggle();
@@ -178,6 +192,7 @@ function createSettingsPage() {
   window.roamAlphaAPI.createBlock(
         {"location": {"parent-uid": buttonUid, "order": 0},
          "block": {"string": buttonInTopBar}});
+  console.log('Bionic text settings page created: [[roam/js/bionic text]].');
 }
 
 function getSettings(settingsArray) {
@@ -200,6 +215,7 @@ function getSettings(settingsArray) {
       default:
         if (str!=null) console.log(str + ' is not a Bionic text setting');
     }
+    console.log('Bionic text settings loaded.');
   }
 }
 })();
