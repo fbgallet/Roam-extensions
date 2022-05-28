@@ -144,6 +144,8 @@ function BionicMode() {
     else {
        midIndex = Math.floor(len * fixNum / 100);
        console.log(word + ' ' + midIndex);
+       if (midIndex<1) midIndex=1;
+       console.log(word.slice(0,midIndex));
     }
     word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     return word;
