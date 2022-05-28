@@ -138,8 +138,10 @@ function BionicMode() {
 
   function boldHalfWord(word) {
     let midIndex=0;
-    if (word.length != 0) {
-      midIndex = Math.ceil(word.length * fixNum / 100);
+    let len=word.length;
+    if (len != 0) {
+      if (len>3) midIndex = Math.ceil(len * fixNum / 100);
+      else midIndex = Math.floor(len * fixNum / 100);
       word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     }
     return word;
