@@ -15,7 +15,7 @@ Support my work on: https://www.buymeacoffee.com/fbgallet
 ************************************************************/
 (()=>{
 //Default Settings
-//User settings: on [[roam/js/bionic text]] page
+//User settings can be set on [[roam/js/bionic text]] page
 var fixation = '50';
 var saccade = '1';
 var buttonInTopBar = 'yes';
@@ -60,6 +60,7 @@ function buttonToggle() {
      nextIconButton.insertAdjacentElement("afterend", mainButton),
         mainButton.insertAdjacentElement("afterend", flexDiv),
         mainButton.addEventListener("click", BionicMode);
+     console.log("Bionic text button added");
   }
 }
 
@@ -211,6 +212,7 @@ function getSettings(settingsArray) {
       case 'button':
         let butSetting = getFirstChild(blockUid)[1];
         if (butSetting != null) buttonInTopBar = butSetting;
+        console.log(buttonInTopBar);
         break;
       default:
         if (str!=null) console.log(str + ' is not a Bionic text setting');
