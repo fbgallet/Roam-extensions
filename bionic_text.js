@@ -18,9 +18,9 @@ Support my work on: https://www.buymeacoffee.com/fbgallet
 //User settings: on [[roam/js/bionic text]] page
 var fixation = '50';
 var saccade = '1';
+var buttonInTopBar = 'yes';
 var fixNum, sacNum;
 var startBionicMode = false;
-var buttonInTopBar = 'yes';
 
 let tree = getTreeByPageTitle('roam/js/bionic text');
 if (tree.length==0) createSettingsPage();
