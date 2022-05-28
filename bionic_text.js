@@ -141,7 +141,10 @@ function BionicMode() {
     let midIndex=0;
     let len=word.length-1;
     if (len>3) midIndex = Math.ceil(len * fixNum / 100);
-    else midIndex = Math.floor(len * fixNum / 100);
+    else {
+       midIndex = Math.floor(len * fixNum / 100);
+       console.log(word + ' ' + midIndex);
+    }
     word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     return word;
   }
