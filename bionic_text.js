@@ -34,7 +34,7 @@ function keyboardToggle(e) {
 }
 
 function buttonToggle() {
-  var nameToUse = "autotag",
+  var nameToUse = "bionic-text",
      bpIconName = "bold",
      checkForButton = document.getElementById(nameToUse + "-icon");
   if (!checkForButton) {
