@@ -5,8 +5,8 @@
     - Toggle it with Shift+Alt+B or 'B' button in the top bar (if enabled in user settings on [[roam/js/bionic text]]).
     - You can set fixation (percentage of word in bold) and saccade (applies every x words) on [[roam/js/bionic text]]
   
-Version: 0.21
-Published: May 28th, 2022
+Version: 0.22
+Published: May 29th, 2022
 By: Fabrice Gallet
 Twitter: @fbgallet
 
@@ -140,12 +140,14 @@ function BionicMode() {
   function boldHalfWord(word) {
     let midIndex=0;
     let len=word.length;
-    if (len>3) midIndex = Math.ceil(len * fixNum / 100);
-    else {
-       midIndex = Math.floor(len * fixNum / 100);
-       if (midIndex<1) midIndex=1;
+    if (!(/\p{Extended_Pictographic}/u.test(word))) {
+       if (len>3) midIndex = Math.ceil(len * fixNum / 100);
+       else {
+          midIndex = Math.floor(len * fixNum / 100);
+          if (midIndex<1) midIndex=1;
+       }
+       word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     }
-    word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     return word;
   }
 }
