@@ -75,7 +75,7 @@ function BionicMode() {
   fixNum = parseInt(fixation);
   sacNum = parseInt(saccade);
   isOn = !isOn;
-  if (startBionicMode) console.log("Bionic text on");
+  if (isOn) console.log("Bionic text on");
   else console.log("Bionic text off");
   
   let elt = document.getElementsByClassName('rm-block-text');
