@@ -2,7 +2,7 @@
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
 
-    Version: 0.23, May 30th, 2022
+    Version: 0.3, May 30th, 2022
     By: @fbgallet on Twitter
 
     - Toggle it with Shift+Alt+B or 'B' button in the top bar.
@@ -17,7 +17,7 @@ var fixation = '50';
 var saccade = '1';
 var buttonInTopBar = 'yes';
 var fixNum, sacNum;
-var startBionicMode = false;
+var isOn = false;
 
 let tree = getTreeByPageTitle('roam/js/bionic text');
 if (tree.length==0) createSettingsPage();
@@ -25,6 +25,16 @@ else getSettings(tree);
 
 document.addEventListener('keydown', keyboardToggle);
 if (buttonInTopBar=='yes') buttonToggle();
+window.addEventListener('popstate',autoToggleWhenBrowsing);
+
+function autoToggleWhenBrowsing() {
+  if (isOn) {
+    setTimeout(function() { 
+      BionicMode();
+      BionicMode();
+    }, 200);
+  }
+}
 
 function keyboardToggle(e) {
   if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();   
@@ -64,14 +74,14 @@ function buttonToggle() {
 function BionicMode() {
   fixNum = parseInt(fixation);
   sacNum = parseInt(saccade);
-  startBionicMode = !startBionicMode;
+  isOn = !isOn;
   if (startBionicMode) console.log("Bionic text on");
   else console.log("Bionic text off");
   
   let elt = document.getElementsByClassName('rm-block-text');
       for (let i=0;i<elt.length;i++) {
         if (isTextBlock(elt[i].innerHTML)==true) {
-          if (startBionicMode==false) {
+          if (isOn==false) {
             elt[i].innerHTML = elt[i].innerHTML.replaceAll('<b>','').replaceAll('</b>','');
             continue;
           }
@@ -86,7 +96,6 @@ function BionicMode() {
     if (c.includes('rm-code-warning') ||
         c.includes('rm-code-block') ||
         c.includes('kanban-board')
-//          c.includes('<label')
        ) return false;
     else return true;
   }
