@@ -1,17 +1,14 @@
 /*********************************************************** 
-   Roam Bionic text
+  Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
 
-    - Toggle it with Shift+Alt+B or 'B' button in the top bar (if enabled in user settings on [[roam/js/bionic text]]).
-    - You can set fixation (percentage of word in bold) and saccade (applies every x words) on [[roam/js/bionic text]]
+    Version: 0.23, May 30th, 2022
+    By: @fbgallet on Twitter
+
+    - Toggle it with Shift+Alt+B or 'B' button in the top bar.
+    - Set fixation (percentage of word in bold), saccade (applies every x words) and button display on [[roam/js/bionic text]] page.
   
-Version: 0.22
-Published: May 29th, 2022
-By: Fabrice Gallet
-Twitter: @fbgallet
-
-Support my work on: https://www.buymeacoffee.com/fbgallet
-
+    Support my work on: https://www.buymeacoffee.com/fbgallet
 ************************************************************/
 (()=>{
 //Default Settings
@@ -124,9 +121,16 @@ function BionicMode() {
   }
   
   function processBlockSegments(tab) {
+    let inButton = false;
     for (let k=0;k<tab.length;k++) {
       let words = new Array();
-      if (tab[k].includes('<')) continue;
+      if (tab[k].includes('<') || inButton) {
+        if (inButton) inButton = !inButton;
+        if (tab[k].includes('<button')) {
+          inButton = true;
+        }
+        continue;
+      }
       words = tab[k].split(' ');
       for (let i=0;i<words.length;i+=sacNum) {
         let w = words[i];
