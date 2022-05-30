@@ -1,10 +1,9 @@
 /*********************************************************** 
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
-
-    Version: 0.3, May 30th, 2022
+    Version: 0.40, May 30th, 2022
     By: @fbgallet on Twitter
-
+    
     - Toggle it with Shift+Alt+B or 'B' button in the top bar.
     - Set fixation (percentage of word in bold), saccade (applies every x words) and button display on [[roam/js/bionic text]] page.
   
@@ -32,10 +31,10 @@ function autoToggleWhenBrowsing() {
     setTimeout(function() { 
       BionicMode();
       BionicMode();
-    }, 200);
+    }, 100);
   }
 }
-
+  
 function keyboardToggle(e) {
   if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();   
 }
@@ -75,91 +74,48 @@ function BionicMode() {
   fixNum = parseInt(fixation);
   sacNum = parseInt(saccade);
   isOn = !isOn;
-  if (isOn) console.log("Bionic text on");
-  else console.log("Bionic text off");
-  
-  let elt = document.getElementsByClassName('rm-block-text');
-      for (let i=0;i<elt.length;i++) {
-        if (isTextBlock(elt[i].innerHTML)==true) {
-          if (isOn==false) {
-            elt[i].innerHTML = elt[i].innerHTML.replaceAll('<b>','').replaceAll('</b>','');
-            continue;
-          }
-          let spanTab = [];
-          spanTab = splitTextFromHtml(elt[i].innerHTML);
-          spanTab = processBlockSegments(spanTab);
-          elt[i].innerHTML = spanTab.join('');
+
+  if (isOn) {
+    console.log("Bionic text on. v0.40");
+    let elt = document.getElementsByClassName('rm-block-text');
+    for (let i=0;i<elt.length;i++) {
+      let nodes = elt[i].children[0].childNodes;
+      for(let j=0;j<nodes.length;j++) {
+        if (nodes[j].nodeType == 3) {
+          let e = document.createElement("bionic");    
+          e.innerHTML = processTextNode(nodes[j].nodeValue);
+          nodes[j].replaceWith(e);
         } 
       }
+    }
+  }
+  else {
+    console.log("Bionic text off.");
+    let bionicElt = document.querySelectorAll("bionic");
+    for (let i=0;i<bionicElt.length;i++) {
+      let originalTxt = bionicElt[i].innerHTML.replaceAll('<b>','').replaceAll('</b>','');
+      bionicElt[i].replaceWith(originalTxt);
+    }
+  }  
 
-  function isTextBlock(c) {
-    if (c.includes('rm-code-warning') ||
-        c.includes('rm-code-block') ||
-        c.includes('kanban-board')
-       ) return false;
-    else return true;
-  }
-
-  function splitTextFromHtml(htmlStr) {
-    let tab = [];
-    let index = 0;
-    tab = getAllIndexOf('<','>',htmlStr);
-    let splitTab = [];
-    let shiftL=0;
-    let shiftR=1;
-    for(let i=0;i<tab.length-1;i++) {
-      splitTab.push(htmlStr.substring(tab[i]+shiftL,tab[i+1]+shiftR));
-      let x = shiftR;
-      shiftR = shiftL;
-      shiftL = x;
+  function processTextNode(text) {
+    let splitText = text.split(' ');
+    for(let i=0;i<splitText.length;i++) {
+      splitText[i] = boldHalfWord(splitText[i]);
     }
-    return splitTab;
-  }
-  
-  function getAllIndexOf(s1,s2,str) {
-    let index = 0;
-    let tab = [];
-    while (index != -1) {
-      index = str.indexOf(s1,index);
-      if (index == -1) break;
-      tab.push(index);
-      index = str.indexOf(s2,index);
-      tab.push(index);
-    }
-    return tab;
-  }
-  
-  function processBlockSegments(tab) {
-    let inButton = false;
-    for (let k=0;k<tab.length;k++) {
-      let words = new Array();
-      if (tab[k].includes('<') || inButton) {
-        if (inButton) inButton = !inButton;
-        if (tab[k].includes('<button')) {
-          inButton = true;
-        }
-        continue;
-      }
-      words = tab[k].split(' ');
-      for (let i=0;i<words.length;i+=sacNum) {
-        let w = words[i];
-        if (w.length != 0) words[i] = boldHalfWord(w);
-      }
-      tab[k]=words.join(' ');
-    }
-    return tab;
+    return splitText.join(' ');
   }
 
   function boldHalfWord(word) {
     let midIndex=0;
     let len=word.length;
     if (!(/\p{Extended_Pictographic}/u.test(word))) {
-       if (len>3) midIndex = Math.ceil(len * fixNum / 100);
-       else {
-          midIndex = Math.floor(len * fixNum / 100);
-          if (midIndex<1) midIndex=1;
-       }
-       word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
+      if (len>3) midIndex = Math.ceil(len * fixNum / 100);
+      else {
+         midIndex = Math.floor(len * fixNum / 100);
+         if (midIndex<1) midIndex=1;
+      }
+      word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     }
     return word;
   }
