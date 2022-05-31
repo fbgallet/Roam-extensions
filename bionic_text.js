@@ -1,7 +1,7 @@
 /*********************************************************** 
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
-    Version: 0.40, May 30th, 2022
+    Version: 0.41, May 31th, 2022
     By: @fbgallet on Twitter
     
     - Toggle it with Shift+Alt+B or 'B' button in the top bar.
@@ -76,7 +76,7 @@ function BionicMode() {
   isOn = !isOn;
 
   if (isOn) {
-    console.log("Bionic text on. v0.40");
+    console.log("Bionic text on. v0.41");
     let elt = document.getElementsByClassName('rm-block-text');
     for (let i=0;i<elt.length;i++) {
       let nodes = elt[i].children[0].childNodes;
@@ -100,8 +100,8 @@ function BionicMode() {
 
   function processTextNode(text) {
     let splitText = text.split(' ');
-    for(let i=0;i<splitText.length;i++) {
-      splitText[i] = boldHalfWord(splitText[i]);
+    for(let i=0;i<splitText.length;i+=sacNum) {
+      if (splitText[i].trim() != '') splitText[i] = boldHalfWord(splitText[i]);
     }
     return splitText.join(' ');
   }
