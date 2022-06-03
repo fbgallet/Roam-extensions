@@ -1,16 +1,13 @@
 /*********************************************************** 
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
+    Version: 0.41, May 31th, 2022
+    By: @fbgallet on Twitter
     
-    Version: 0.50, Juny 3rd, 2022
-    By: Fabrice Gallet (Twitter: @fbgallet)
-        Support my work on:
-            https://www.buymeacoffee.com/fbgallet
-
-Instructions:
     - Toggle it with Shift+Alt+B or 'B' button in the top bar.
     - Set fixation (percentage of word in bold), saccade (applies every x words) and button display on [[roam/js/bionic text]] page.
-
+  
+    Support my work on: https://www.buymeacoffee.com/fbgallet
 ************************************************************/
 (()=>{
 //Default Settings
@@ -18,20 +15,28 @@ Instructions:
 var fixation = '50';
 var saccade = '1';
 var buttonInTopBar = 'yes';
-
-var version = "v0.50";
 var fixNum, sacNum;
 var isOn = false;
 
 let tree = getTreeByPageTitle('roam/js/bionic text');
 if (tree.length==0) createSettingsPage();
 else getSettings(tree);
-  
+
 document.addEventListener('keydown', keyboardToggle);
 if (buttonInTopBar=='yes') buttonToggle();
+window.addEventListener('popstate',autoToggleWhenBrowsing);
+
+function autoToggleWhenBrowsing() {
+  if (isOn) {
+    setTimeout(function() { 
+      BionicMode();
+      BionicMode();
+    }, 100);
+  }
+}
   
 function keyboardToggle(e) {
-    if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();
+  if (e.shiftKey && e.altKey && e.key.toLowerCase() == "b") BionicMode();   
 }
 
 function buttonToggle() {
@@ -71,104 +76,37 @@ function BionicMode() {
   isOn = !isOn;
 
   if (isOn) {
-    console.log("Bionic text on: "+ version);
-    window.addEventListener('popstate',autoToggleWhenBrowsing);
+    console.log("Bionic text on. v0.41");
     let elt = document.getElementsByClassName('rm-block-text');
     for (let i=0;i<elt.length;i++) {
-      firstNode=true;
-      lastNode=false;
       let nodes = elt[i].children[0].childNodes;
       for(let j=0;j<nodes.length;j++) {
-        insertBionicNode(nodes[j]);
+        if (nodes[j].nodeType == 3) {
+          let e = document.createElement("bionic");    
+          e.innerHTML = processTextNode(nodes[j].nodeValue);
+          nodes[j].replaceWith(e);
+        } 
       }
     }
   }
   else {
     console.log("Bionic text off.");
-    window.removeEventListener('popstate',autoToggleWhenBrowsing);
-    document.querySelectorAll('.rm-block-ref').forEach(item => {
-      item.removeEventListener('click', event => {
-        if (isOn) BionicMode(); })
-    });
-    removeBionicNodes();
-  }  
-  
-  function insertBionicNode(node) {
-    if (node.nodeType == 3) {   // nodeType 3 is Text
-      let bionicChild = processTextNode(node.nodeValue);
-      node.parentNode.replaceChild(bionicChild, node);
-    }
-    else {
-      let className = node.className;
-      switch (className) {
-        case 'rm-bold':
-        case 'rm-highlight':
-        case 'rm-italics':
-        case 'rm-page-ref rm-page-ref--tag':  // tag
-          node = node.childNodes[0];
-          break;
-        case "bp3-popover-wrapper": // block ref or alias
-          node = node.childNodes[0]
-                      .childNodes[0]
-                       .childNodes[0];
-          if (node.nodeType != 3) {  // block ref
-            node = node.childNodes;
-            for(let i=0;i<node.length;i++) {
-              insertBionicNode(node[i]);
-            }
-            return;
-          }
-          break;
-        default:
-          if (node.childNodes) {
-            className = node.childNodes[0].className;
-            switch (className) {
-              case "bp3-popover-wrapper":      // alias
-                node = node.childNodes[0];
-                break;
-              case "rm-page-ref rm-page-ref--link":  // page ref
-                node = node.childNodes[0].childNodes[0];
-                break;
-              default:
-                if (node.parentElement.className == 'rm-bq')
-                  node = node.childNodes[0];        // quote
-                else return;
-            }
-          }
-          else return;
-      }
-      insertBionicNode(node);
-    }
-  }
-
-  function removeBionicNodes(e = document) {
-    let bionicElt = e.querySelectorAll("bionic");
+    let bionicElt = document.querySelectorAll("bionic");
     for (let i=0;i<bionicElt.length;i++) {
-      let originalTxt = bionicElt[i].innerText;
-      let eTxt = document.createTextNode(originalTxt);
-      bionicElt[i].replaceWith(eTxt);
+      let originalTxt = bionicElt[i].innerHTML.replaceAll('<b>','').replaceAll('</b>','');
+      bionicElt[i].replaceWith(originalTxt);
     }
-  }
-  
-  function processTextNode(text, node) {
+  }  
+
+  function processTextNode(text) {
     let splitText = text.split(' ');
-    let e = document.createElement('bionic');
     for(let i=0;i<splitText.length;i+=sacNum) {
-      let word = splitText[i];
-      let midIndex = getmiddleIndex(word);
-      let b = document.createElement("b");
-      let boldPart = word.slice(0,midIndex);
-      b.textContent = boldPart;
-      e.appendChild(b);
-      let notBoldPart = word.slice(midIndex)+' ';
-      if (i==splitText.length-1) notBoldPart = notBoldPart.slice(0,-1);
-      let t = document.createTextNode(notBoldPart);
-      e.appendChild(t);
+      if (splitText[i].trim() != '') splitText[i] = boldHalfWord(splitText[i]);
     }
-    return e;
+    return splitText.join(' ');
   }
 
-  function getmiddleIndex(word) {
+  function boldHalfWord(word) {
     let midIndex=0;
     let len=word.length;
     if (!(/\p{Extended_Pictographic}/u.test(word))) {
@@ -177,20 +115,12 @@ function BionicMode() {
          midIndex = Math.floor(len * fixNum / 100);
          if (midIndex<1) midIndex=1;
       }
+      word = '<b>' + word.slice(0,midIndex) + '</b>' + word.slice(midIndex);
     }
-    return midIndex;
+    return word;
   }
 }
 
-function autoToggleWhenBrowsing() {
-  if (isOn) {
-    setTimeout(function() { 
-      BionicMode();
-      BionicMode();
-    }, 100);
-  }
-}
-  
 function getTreeByPageTitle(pageTitle) {
 return window.roamAlphaAPI.q(
   `[:find ?uid ?s 
@@ -257,6 +187,7 @@ function getSettings(settingsArray) {
       case 'button':
         let butSetting = getFirstChild(blockUid)[1];
         if (butSetting != null) buttonInTopBar = butSetting;
+        console.log(buttonInTopBar);
         break;
       default:
         if (str!=null) console.log(str + ' is not a Bionic text setting');
