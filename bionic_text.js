@@ -2,7 +2,7 @@
   Roam Bionic text
    	inspired by Bionic Reading (TM) : https://https://bionic-reading.com/
     
-    Version: 0.51, Juny 4, 2022
+    Version: 0.52, Juny 4, 2022
     By: Fabrice Gallet (Twitter: @fbgallet)
         Support my work on:
             https://www.buymeacoffee.com/fbgallet
@@ -19,9 +19,11 @@ var fixation = '50';
 var saccade = '1';
 var buttonInTopBar = 'yes';
 
-var version = "v0.51";
+var version = "v0.52";
 var fixNum, sacNum;
 var isOn = false;
+var lastTextarea, lastElt = null;
+var isNewView = true;
 
 let tree = getTreeByPageTitle('roam/js/bionic text');
 if (tree.length==0) createSettingsPage();
@@ -69,109 +71,128 @@ function BionicMode() {
   fixNum = parseInt(fixation);
   sacNum = parseInt(saccade);
   isOn = !isOn;
-
+  
+  let elt = document.querySelectorAll('.rm-block-text');
+  
   if (isOn) {
-    console.log("Bionic text on: "+ version);
-    window.addEventListener('popstate',autoToggleWhenBrowsing);
-//    let elt = document.getElementsByClassName('rm-block-text');
-    let elt = document.querySelectorAll('.rm-block-text');
+    if (isNewView) {
+      window.addEventListener('popstate',autoToggleWhenBrowsing);
+      console.log("Bionic text on: "+ version);
+    }
+    else console.log("Bionic text refreshing current view.");
     elt.forEach( el => {
-      firstNode=true;
-      lastNode=false;
-      if (el.innerHTML.includes('<bionic>')==false) {
-        let nodes = el.children[0].childNodes;
-        for(let j=0;j<nodes.length;j++) {
-          insertBionicNode(nodes[j]);
-        }
-      }
-      el.addEventListener('focusin', function(evt) {
-      let tArea = document.getElementsByClassName("rm-block__input--active");
-      setTimeout(function () {
-        tArea[0].addEventListener('focusout',
-          function() {
-            setTimeout(function () {
-              isOn = false;
-              BionicMode();
-            }, 100);
-      });
-      },300);
+      processHtmlElement(el);
+      if (isNewView) el.addEventListener('focusin', onFocusIn);
     });
-    });
+    if (lastElt!=null) {
+      document.getElementById(lastElt.id)
+        .addEventListener('focusin', onFocusIn);
+    }
   }
   else {
     console.log("Bionic text off.");
     window.removeEventListener('popstate',autoToggleWhenBrowsing);
-    document.querySelectorAll('.rm-block-ref').forEach(item => {
-      item.removeEventListener('click', event => {
-        if (isOn) BionicMode(); })
+    elt.forEach(item => {
+      item.removeEventListener('focusin', onFocusIn);
     });
     removeBionicNodes();
-  }  
+    isNewView=true;
+  }
+}
   
-  function insertBionicNode(node) {
-    if (node.nodeType == 3) {   // nodeType 3 is Text
-      let bionicChild = processTextNode(node.nodeValue);
-      node.parentNode.replaceChild(bionicChild, node);
-    }
-    else {
-      let className = node.className;
-      switch (className) {
-        case 'rm-bold':
-        case 'rm-highlight':
-        case 'rm-italics':
-        case 'rm-page-ref rm-page-ref--tag':  // tag
-          node = node.childNodes[0];
-          break;
-        case "bp3-popover-wrapper": // block ref or alias
-          node = node.childNodes[0]
-                      .childNodes[0]
-                       .childNodes[0];
-          if (node.nodeType != 3) {  // block ref
-            node = node.childNodes;
-            for(let i=0;i<node.length;i++) {
-              insertBionicNode(node[i]);
-            }
-            return;
-          }
-          break;
-        default:
-          if (node.childNodes) {
-            className = node.childNodes[0].className;
-            switch (className) {
-              case "bp3-popover-wrapper":      // alias
-                node = node.childNodes[0];
-                break;
-              case "rm-page-ref rm-page-ref--link":  // page ref
-                node = node.childNodes[0].childNodes[0];
-                break;
-              default:
-                if (node.parentElement.className == 'rm-bq')
-                  node = node.childNodes[0];        // quote
-                else return;
-            }
-          }
-          else return;
+function processHtmlElement(el) {
+  //console.log(el);
+  if (el.innerHTML.includes('<bionic>')==false) {
+    let nodes = el.firstChild.childNodes;
+    if (nodes.length!=0) {
+      for(let j=0;j<nodes.length;j++) {
+        insertBionicNode(nodes[j]);
       }
-      insertBionicNode(node);
     }
   }
+}
 
-  function removeBionicNodes(e = document) {
-    let bionicElt = e.querySelectorAll("bionic");
-   // console.log(e);
-    for (let i=0;i<bionicElt.length;i++) {
-      let originalTxt = bionicElt[i].innerText;
-      let eTxt = document.createTextNode(originalTxt);
-      bionicElt[i].replaceWith(eTxt);
+function onFocusIn(ev) {
+  lastElt = ev.target;
+  isNewView=false;
+//   console.log("from In:");
+//   console.log(lastElt);
+  let tArea = document.getElementsByClassName("rm-block__input--active");
+  setTimeout(function () {
+    if (tArea.length!=0) {
+        lastTextarea = tArea[0];
+        lastTextarea.addEventListener('focusout', onFocusOut);
     }
+    lastElt.removeEventListener('focusin', onFocusIn);
+  },100);
+}
+function onFocusOut(ev) {
+  setTimeout(function () {
+      lastTextarea.removeEventListener('focusout', onFocusOut);
+   //   console.log("from Out:");
+   //   console.log(lastElt);
+      isOn = false;
+      BionicMode();
+  }, 200);
+}
+
+function insertBionicNode(node) {
+  if (node.nodeType == 3) {   // nodeType 3 is Text
+    let bionicChild = processTextNode(node.nodeValue);
+    node.parentNode.replaceChild(bionicChild, node);
   }
-  
-  function processTextNode(text, node) {
-    let splitText = text.split(' ');
-    let e = document.createElement('bionic');
-    for(let i=0;i<splitText.length;i++) {
-      if((i==0 )|| (i%sacNum)==0) {
-        let word = splitText[i];
+  else {
+    let className = node.className;
+    switch (className) {
+      case 'rm-bold':
+      case 'rm-highlight':
+      case 'rm-italics':
+      case 'rm-page-ref rm-page-ref--tag':  // tag
+        node = node.childNodes[0];
+        break;
+      case "bp3-popover-wrapper": // block ref or alias
+        node = node.childNodes[0]
+                    .childNodes[0]
+                     .childNodes[0];
+        if (node.nodeType != 3) {  // block ref
+          node = node.childNodes;
+          for(let i=0;i<node.length;i++) {
+            insertBionicNode(node[i]);
+          }
+          return;
+        }
+        break;
+      default:
+        if (node.childNodes) {
+          className = node.childNodes[0].className;
+          switch (className) {
+            case "bp3-popover-wrapper":      // alias
+              node = node.childNodes[0];
+              break;
+            case "rm-page-ref rm-page-ref--link":  // page ref
+              node = node.childNodes[0].childNodes[0];
+              break;
+            default:
+              if (node.parentElement.className == 'rm-bq')
+                node = node.childNodes[0];        // quote
+              else return;
+          }
+        }
+        else return;
+    }
+    insertBionicNode(node);
+  }
+}
+
+function processTextNode(text, node) {
+  let splitText = text.split(' ');
+  let e = document.createElement('bionic');
+  let spaceShift=0;
+  for(let i=0;i<splitText.length;i++) {
+    let t;
+    if((i==0 )|| ((i+spaceShift)%sacNum)==0) {
+      let word = splitText[i];
+      if (word!='') {
         let midIndex = getmiddleIndex(word);
         let b = document.createElement("b");
         let boldPart = word.slice(0,midIndex);
@@ -179,40 +200,58 @@ function BionicMode() {
         e.appendChild(b);
         let notBoldPart = word.slice(midIndex)+' ';
         if (i==splitText.length-1) notBoldPart = notBoldPart.slice(0,-1);
-        let t = document.createTextNode(notBoldPart);
-        e.appendChild(t);
+        t = document.createTextNode(notBoldPart);
       }
       else {
-        let plainText = splitText[i]+' ';
-        if (i==splitText.length-1) plainText = plainText.slice(0,-1);
-        e.appendChild(document.createTextNode(plainText));
+        word += ' ';
+        if (i==splitText.length-1) word = word.slice(0,-1);
+        t = document.createTextNode(word);
+        spaceShift++;
       }
+      e.appendChild(t);
     }
-    return e;
+    else {
+      t = splitText[i]+' ';
+      if (i==splitText.length-1) t = t.slice(0,-1);
+      e.appendChild(document.createTextNode(t));
+    }
   }
+  return e;
+}
 
-  function getmiddleIndex(word) {
-    let midIndex=0;
-    let len=word.length;
-    if (!(/\p{Extended_Pictographic}/u.test(word))) {
-      if (len>3) midIndex = Math.ceil(len * fixNum / 100);
-      else {
-         midIndex = Math.floor(len * fixNum / 100);
-         if (midIndex<1) midIndex=1;
-      }
+function getmiddleIndex(word) {
+  let midIndex=0;
+  let len=word.length;
+  if (!(/\p{Extended_Pictographic}/u.test(word))) {
+    if (len>3) midIndex = Math.ceil(len * fixNum / 100);
+    else {
+       midIndex = Math.floor(len * fixNum / 100);
+       if (midIndex<1) midIndex=1;
     }
-    return midIndex;
   }
+  return midIndex;
 }
 
 function autoToggleWhenBrowsing() {
   if (isOn) {
-    setTimeout(function() { 
+    setTimeout(function() {
       BionicMode();
+      isNewView=true;
       BionicMode();
     }, 100);
   }
 }
+
+function removeBionicNodes(e = document) {
+    let bionicElt = e.querySelectorAll("bionic");
+    //console.log('remove:');
+    //console.log(bionicElt);
+    for (let i=0;i<bionicElt.length;i++) {
+      let originalTxt = bionicElt[i].innerText;
+      let eTxt = document.createTextNode(originalTxt);
+      bionicElt[i].replaceWith(eTxt);
+    }
+  }
   
 function getTreeByPageTitle(pageTitle) {
 return window.roamAlphaAPI.q(
