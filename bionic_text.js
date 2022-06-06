@@ -97,6 +97,7 @@ function BionicMode() {
     });
     removeBionicNodes();
     isNewView=true;
+    lastElt=null;
   }
 }
   
