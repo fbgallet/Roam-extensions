@@ -1,4 +1,4 @@
-# Roam-extensions
-[Roam Research](https://roamresearch.com) Javascript extensions/plugins by Fabrice Gallet ([follow me on Twitter here](https://twitter.com/fbgallet))
+Deprecated repo for Bionic Text in Roam Research. New repo for Bionic Text extension available in Roam Depot is now here: https://github.com/fbgallet/roam-extension-bionic-text
 
-Instructions and videos on [this Roam page](https://roamresearch.com/?server-port=3333#/app/Roam-En-Francais/page/eyPmdlKZ7).
+
+Javascript extensions/plugins by Fabrice Gallet ([follow me on Twitter here](https://twitter.com/fbgallet))
